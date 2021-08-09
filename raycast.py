@@ -12,10 +12,10 @@ def intersects(ray: Vector, line: Line) -> bool:
     4. If not, returns False
     5. Finds the distance and converts to a height value
     """
-    try:
-        intersection = ray.intersects_at(line)
-    except ZeroDivisionError:
+    intersection = ray.intersects_at(line)
+    if not intersection:
         return False
+
     if line.contains_point(intersection):
         # return True
         # value max 9 min 1
