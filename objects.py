@@ -6,11 +6,21 @@ ip = in-place = the function will change the object itself instead of returning 
 from __future__ import annotations
 import math
 
+from pyglet import shapes
+
 
 class Vector:
-    def __init__(self, x, y):
-        self.x: float = x
-        self.y: float = y
+    def __init__(self, x: float, y: float = None):
+        if y is None:
+            assert (
+                type(x) is tuple
+            ), f"Vector initialized with unknown single argument: {x}"
+            self.x = x[0]
+            self.y = x[1]
+        else:
+            self.x: float = x
+            self.y: float = y
+
         self._set_properties()
 
     def _set_properties(self):
@@ -46,6 +56,26 @@ class Vector:
             return None
         return Vector(self.x * t_star, self.y * t_star)
 
+    def intersects_which(self, lines: list[Line]) -> Line:
+        """
+        Checks if there's an intersection in a list of lines. Returns the first line that intersects.
+        """
+        for line in lines:
+            if self.intersects_segment(line):
+                return line
+
+        return None
+
+    def intersects_segment(self, line: Line) -> bool:
+        intersection = self.intersects_at(line)
+        if not intersection:
+            return False
+
+        if line.contains_point(intersection):
+            return True
+        else:
+            return False
+
     def dot_product(self: Vector, vectorB: Vector, angle: float) -> float:
         product: float = self.magnitude * vectorB.magnitude * math.cos(angle)
         return product
@@ -69,7 +99,15 @@ class Vector:
 
 
 class Line:
+    width = 3
+    color = (255, 255, 255)
+
     def __init__(self, vertexA: Vector, vertexB: Vector):
+        if issubclass(type(vertexA), tuple):
+            vertexA = Vector(vertexA)
+        if issubclass(type(vertexB), tuple):
+            vertexB = Vector(vertexB)
+
         self.vertexA: Vector = vertexA
         self.vertexB: Vector = vertexB
         self._set_line_equation()
@@ -163,3 +201,14 @@ class Line:
 
         if test_magnitude >= 0 and test_magnitude <= own_magnitude:
             return True
+
+    def init_render(self, game):
+        self.repr = shapes.Line(
+            self.vertexA.x,
+            self.vertexA.y,
+            self.vertexB.x,
+            self.vertexB.y,
+            width=self.width,
+            color=self.color,
+            batch=game.batch,
+        )
