@@ -24,7 +24,9 @@ class Vector:
         return Vector(new_x, new_y)
 
     def rotate_ip(self, angle: float) -> None:
-        self = self.rotate(angle)  # holy shit does this work? kinda scary
+        new_me = self.rotate(angle)  # holy shit does this work? kinda scary
+        self.x = new_me.x
+        self.y = new_me.y
 
     def distance(self, other):
         if isinstance(other, Vector):
@@ -35,9 +37,13 @@ class Vector:
     def intersects_at(self, line: Line) -> Vector:
         """
         Returns a vector of this point's intersection with the line, if it exists
-        (It will fail to exist only if parallel, but if very near parallel won't one of the coordinates overflow?)
+        ZeroDivisionError occurs if the ray is parallel to the line.
         """
-        t_star: float = -line.c / (line.a * self.x + line.b * self.y)
+        try:
+            t_star: float = -line.c / (line.a * self.x + line.b * self.y)
+        except ZeroDivisionError:
+            # ray is parallel to line?
+            return None
         return Vector(self.x * t_star, self.y * t_star)
 
     def dot_product(self: Vector, vectorB: Vector, angle: float) -> float:
@@ -78,7 +84,13 @@ class Line:
         )
 
     def _set_slope(self):
-        self.slope: float = -self.a / self.b
+        """
+        Sets the slope, or sets to None if vertical
+        """
+        if self.b == 0:
+            self.slope = None
+        else:
+            self.slope: float = -self.a / self.b
 
     def offset(self, vector: Vector) -> Line:
         new_A = self.vertexA + vector
